@@ -5,18 +5,35 @@ import { FormControl, InputLabel, Select, MenuItem, Button, Box, Typography,Text
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+
 
 
 
 
 const Formularios= ()=> {
 
+    const [tarifaCalculada, setTarifaCalculada] = useState(0);
+    const [selectedVehiculoData, setSelectedVehiculoData] = useState<tarifa | null>(null);
+    const calcularTarifa = (vehiculoData: { tarifa_base: number; tarifa_por_kilometro: number; } | null) => {
+        if (vehiculoData) {
+            const distanciaRecorrida = 100; // Ejemplo: distancia en kilómetros
+            const tarifaTotal = vehiculoData.tarifa_base + (distanciaRecorrida * vehiculoData.tarifa_por_kilometro);
+            setTarifaCalculada(tarifaTotal);
+        }
+    };
+    useEffect(() => {
+        calcularTarifa(selectedVehiculoData);
+    }, [selectedVehiculoData]);
 
     const [pasajero, setPasajero] = useState({
         pasajero_id: '',
         nombre: ''
     });
-
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+const [alertMessage, setAlertMessage] = useState('');
 
     const handlePasajeroChange = (event: { target: { name: any; value: any; }; }) => {
         const {name, value} = event.target;
@@ -51,7 +68,7 @@ const Formularios= ()=> {
         fetchConductores();
     }, []);
 
-    const [vehiculos, setVehiculos] = useState([]);
+    const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
     const [selectedVehiculoId, setSelectedVehiculoId] = useState('');
 
     useEffect(() => {
@@ -67,9 +84,9 @@ const Formularios= ()=> {
         fetchVehiculos();
     }, []);
 
-    const [lugares, setLugares] = useState([]);
+    const [lugares, setLugares] = useState<Lugar[]>  ([]);
     const [selectedLugarId, setSelectedLugarId] = useState('');
-
+const [selectedLugarLlegadaId, setSelectedLugarLlegadaId] = useState('');
     useEffect(() => {
         async function fetchLugares() {
             try {
@@ -83,6 +100,21 @@ const Formularios= ()=> {
         fetchLugares();
     }, []);
 
+    const handleVehiculoChange1 = async (event: { target: { value: any; }; }) => {
+        const selectedVehiculoId = event.target.value;
+        setSelectedVehiculoId(selectedVehiculoId);
+
+        try {
+            const response = await axios.get(`/api/vehiculos/${selectedVehiculoId}`);
+            const selectedVehiculoData = response.data;
+            setSelectedVehiculoData(selectedVehiculoData);
+            calcularTarifa(selectedVehiculoData);
+        } catch (error) {
+            console.error('Error al obtener los datos del vehículo:', error);
+            setSelectedVehiculoData(null);
+            setTarifaCalculada(0);
+        }
+    };
 
     const handleVehiculoChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
         setSelectedVehiculoId(event.target.value);
@@ -92,31 +124,96 @@ const Formularios= ()=> {
         setSelectedLugarId(event.target.value);
     };
 
+    const handleLugarLlegadaChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
+        setSelectedLugarLlegadaId(event.target.value);
+    }
 
-    const handleFechaSalidaChange = (date) => {
+
+    const handleFechaSalidaChange = (date: React.SetStateAction<{ fechaSalida: string; }>) => {
         setFechaSalida(date);
     }
-    const handleFechaLlegadaChange = (date) => {
+    const handleFechaLlegadaChange = (date: React.SetStateAction<{ fechaLlegada: string; }>) => {
         setFechaLlegada(date);
     }
     const handleSubmit = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
+
         try {
-            const data = {
-                pasajero_id: pasajero.pasajero_id,
+            // Verificar que el nombre del pasajero no esté vacío y no contenga números
+            if (pasajero.nombre === '' || /\d/.test(pasajero.nombre)) {
+                setAlertMessage('El nombre solo puede contener letras');
+                setShowAlert(true);
+                return;
+            }
+
+            // Verificar que el lugar de salida no sea el mismo que el de llegada
+            if (selectedLugarId === selectedLugarLlegadaId) {
+                setAlertMessage('El lugar de salida no puede ser el mismo que el de llegada');
+                setShowAlert(true);
+                return;
+            }
+
+            // Datos del pasajero
+            const pasajeroData = {
                 nombre: pasajero.nombre,
-                fechaSalida: fechaSalida,
-                conductor_id: selectedConductorId,
-                vehiculo_id: selectedVehiculoId,
-                lugar_id: selectedLugarId
             };
-            await axios.post('api/reservas', data);
-            }
-            catch (error) {
-            console.error('Error al enviar el conductor:', error);
-            }
+
+            // Insertar pasajero en la tabla Pasajeros
+            await axios.post('api/pasajeros', pasajeroData);
+
+            // @ts-ignore
+            const fechaSalidaDate = new Date(fechaSalida);
+
+            // Datos de la reserva
+            const reservaData = {
+                pasajero_nombre: pasajero.nombre,
+                vehiculo_id: selectedVehiculoId,
+                origen_id: selectedLugarId,
+                destino_id: selectedLugarLlegadaId,
+                fecha: fechaSalidaDate.toISOString().split('T')[0], // Convertir a formato "YYYY-MM-DD"
+                precio_estimado: tarifaCalculada,
+            };
+
+            // Insertar reserva en la tabla Reservas
+            const success= await axios.post('api/reservas', reservaData);
+
+            // Mostrar la alerta de éxito
+    setAlertMessage('Reserva creada con éxito')
+            setShowSuccessAlert(true);
+            setShowAlert(false);
+            console.log('Reserva enviada:', reservaData);
+
+
+        } catch (error) {
+            console.error('Error al crear la reserva', error);
+            setShowAlert(true); // Mostrar el alerta de error
+            setShowSuccessAlert(false); // Ocultar el alerta de éxito
+        }
     };
-        return (
+
+
+    interface Lugar {
+        lugar_id: number;
+        nombre: string;
+    }
+    interface Vehiculo {
+        vehiculo_id: number;
+        marca: string;
+    }
+    interface tarifa {
+        vehiculo_id: number;
+        marca: string;
+        tarifa_base: number;
+        tarifa_por_kilometro: number;
+
+    }
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
+
+    // @ts-ignore
+    // @ts-ignore
+    return (
             <div
                 style={{minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb))'}}>
                 <form onSubmit={handleSubmit}
@@ -124,8 +221,23 @@ const Formularios= ()=> {
                     <h2 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: 'black'}}>Reservar
                         un viaje</h2>
 
+                    {showAlert && (
+                        <Alert severity="warning">
+                            <AlertTitle>Error!</AlertTitle>
+                            <strong>{alertMessage}</strong>
+                        </Alert>
+                    )}
+
+                    {showSuccessAlert && (
+                        <Alert severity="success">
+                            <AlertTitle>Exito!</AlertTitle>
+                            <strong> Reserva creada exitosamentes</strong>
+                        </Alert>
+                    )}
+
+
                     <Grid container spacing={1} alignItems="center">
-                        <Grid item xs={12} sm={8} md={6}>
+                        <Grid item xs={12} sm={8} md={12}>
 
                             <TextField
                                 label="Nombre"
@@ -148,28 +260,29 @@ const Formularios= ()=> {
                                     id="vehiculo"
                                     label="Vehículo"
                                     value={selectedVehiculoId}
-                                    onChange={handleVehiculoChange}
+                                    onChange={handleVehiculoChange1}
                                 >
+
                                     {vehiculos.map((vehiculo) => (
+                                        // @ts-ignore
                                         <MenuItem key={vehiculo.vehiculo_id} value={vehiculo.vehiculo_id}>
+
                                             {vehiculo.marca}
                                         </MenuItem>
                                     ))}
                                 </Select>
+
+
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={8} md={6}>
+                        <Grid item xs={12} sm={12} md={6} >
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker label="Fecha de Salida" value={fechaSalida}
-                                            onChange={handleFechaSalidaChange}/>
+                                    // @ts-ignore
+                                            onChange={handleFechaSalidaChange} format="YYYY-MM-DD"  />
                             </LocalizationProvider>
                         </Grid>
-                        <Grid item xs={12} sm={8} md={6}>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker label="Fecha de Llegada" value={fechaLlegada}
-                                            onChange={handleFechaLlegadaChange}/>
-                            </LocalizationProvider>
-                        </Grid>
+
                     </Grid>
 
 
@@ -184,6 +297,8 @@ const Formularios= ()=> {
                         >
                             {lugares.map((lugar) => (
                                 <MenuItem key={lugar.lugar_id} value={lugar.lugar_id}>
+
+
                                     {lugar.nombre}
                                 </MenuItem>
                             ))}
@@ -197,21 +312,34 @@ const Formularios= ()=> {
                             labelId="lugar-label2"
                             id="Lugar de destino"
                             label="Lugar de destino"
-                            value={selectedLugarId}
-                            onChange={handleLugarChange}
+                            value={selectedLugarLlegadaId}
+                            onChange={handleLugarLlegadaChange}
                         >
+
                             {lugares.map((lugar) => (
+
                                 <MenuItem key={lugar.lugar_id} value={lugar.lugar_id}>
+
                                     {lugar.nombre}
                                 </MenuItem>
                             ))}
                         </Select>
 
+                        {selectedVehiculoData && (
+
+                            <Alert severity="info" className="mt-3">
+                                <p className="text-black">Tarifa Base: {selectedVehiculoData.tarifa_base}</p>
+                                <p>Tarifa Calculada: {tarifaCalculada}</p>
+                            </Alert>
+                        )}
+
                     </FormControl>
 
+                    <Button variant="contained" type="submit" className="ml-40 mt-3 px-6 py-3 rounded-lg shadow-md hover:bg-blue-800 bg-blue-600 text-white-900 transition duration-300">
+                        Reservar
+                    </Button>
 
                 </form>
-
 
             </div>
         );

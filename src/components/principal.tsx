@@ -4,6 +4,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
 import Tooltip from '@mui/material/Tooltip';
+import Link from "next/link";
 
 const Navbar = () => {
     return (
@@ -12,39 +13,33 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Tooltip title="Inicio" placement="bottom">
+                            <Tooltip title="Bienvenido :)" placement="bottom">
                                 <span className="text-white font-semibold text-lg">
                                     <CardTravelIcon />
                                 </span>
                             </Tooltip>
                         </div>
+
                         <div className="hidden md:block">
                             <div className="ml-10 flex space-x-4">
+                                <div className="ml-2">
                                 <Tooltip title="Inicio" placement="bottom">
-                                    <a
-                                        href="#"
-                                        className="text-white hover:text-gray-500 px-3 py-2 rounded-md text-sm font-medium"
-                                    >
-                                        <HomeOutlinedIcon />
-                                    </a>
-                                </Tooltip>
-                                <Tooltip title="Información" placement="bottom">
-                                    <a
-                                        href="#"
-                                        className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-                                    >
-                                        <InfoOutlinedIcon />
-                                    </a>
-                                </Tooltip>
+                                    <Link href="/" >
 
-                                <Tooltip title="Contacto" placement="bottom">
-                                    <a
-                                        href="#"
-                                        className="text-white hover:text-gray-300 px-3 py-2 rounded-md text-sm font-medium"
-                                    >
-                                        <ContactPhoneOutlinedIcon />
-                                    </a>
+                                       <HomeOutlinedIcon />
+
+                                    </Link>
                                 </Tooltip>
+                            </div>
+                                <div className="ml-2">
+                                <Tooltip title="Crear Reserva" placement="bottom">
+
+                                    <Link href="/Reserva" className="ml-5">
+                                        <InfoOutlinedIcon />
+
+                                    </Link>
+                                </Tooltip>
+                                </div>
                             </div>
                         </div>
                     </div>

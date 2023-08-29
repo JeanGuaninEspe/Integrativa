@@ -24,14 +24,10 @@ const TravelBookingPage1 = () => {
                     </p>
                     <GridCards/>
 
-                    <Button
-                        variant="contained"
-                        className="px-6 py-3 rounded-lg shadow-md hover:bg-blue-800 bg-blue-600 text-white-900 transition duration-300"
-                    >
-                        Ver Viajes Disponibles
-                    </Button>
+
                 </div>
             </div>
+
         </>
     </>;
 }
