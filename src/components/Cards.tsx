@@ -6,9 +6,9 @@ import Typography from '@mui/material/Typography';
 import { CardActionArea } from '@mui/material';
 
 // @ts-ignore
-export default function ActionAreaCard({image,height, title}) {
+export default function ActionAreaCard({image,height, title, description}) {
     return (
-        <Card sx={{ maxWidth: 345, maxHeight:300 }} className="mb-5 bg-amber-50">
+        <Card sx={{ maxWidth: 345, maxHeight:470 }} className="mb-5 bg-amber-50">
             <CardActionArea className="">
                 <CardMedia
 
@@ -18,8 +18,11 @@ export default function ActionAreaCard({image,height, title}) {
                     alt="green iguana"
                 />
                 <CardContent >
-                    <Typography gutterBottom variant="h5" component="div">
+                    <Typography gutterBottom variant="h5" component="div" >
                         {title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" className={"text-justify"}>
+                        {description}
                     </Typography>
 
                 </CardContent>

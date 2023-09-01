@@ -9,7 +9,7 @@ import GridCards from "@/components/grid";
 
 const TravelBookingPage1 = () => {
     return <>
-        <><Navbar/>
+        <>
             <div
                 className="bg-gradient-to-b from-transparent to-[rgb(var(--background-end-rgb))] via-[rgb(var(--background-start-rgb))] min-h-screen flex flex-col justify-center items-center">
                 <div

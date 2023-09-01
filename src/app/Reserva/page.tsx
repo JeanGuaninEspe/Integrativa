@@ -4,7 +4,6 @@ import Navbar from "@/components/principal";
 export default function Driver() {
     return (
         <>
-            <Navbar/>
         <Formularios/>
         </>
     );

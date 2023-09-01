@@ -2,7 +2,7 @@ import React from 'react';
 import CardTravelIcon from '@mui/icons-material/CardTravel';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ContactPhoneOutlinedIcon from '@mui/icons-material/ContactPhoneOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'; // Importar el icono de inicio de sesión
 import Tooltip from '@mui/material/Tooltip';
 import Link from "next/link";
 
@@ -23,24 +23,31 @@ const Navbar = () => {
                         <div className="hidden md:block">
                             <div className="ml-10 flex space-x-4">
                                 <div className="ml-2">
-                                <Tooltip title="Inicio" placement="bottom">
-                                    <Link href="/" >
-
-                                       <HomeOutlinedIcon />
-
-                                    </Link>
-                                </Tooltip>
-                            </div>
+                                    <Tooltip title="Inicio" placement="bottom">
+                                        <Link href="/" >
+                                            <HomeOutlinedIcon />
+                                        </Link>
+                                    </Tooltip>
+                                </div>
                                 <div className="ml-2">
-                                <Tooltip title="Crear Reserva" placement="bottom">
-
-                                    <Link href="/Reserva" className="ml-5">
-                                        <InfoOutlinedIcon />
-
-                                    </Link>
-                                </Tooltip>
+                                    <Tooltip title="Crear Reserva" placement="bottom">
+                                        <Link href="/Reserva" className="ml-5">
+                                            <InfoOutlinedIcon />
+                                        </Link>
+                                    </Tooltip>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Icono de inicio de sesión */}
+                    <div className="hidden md:block">
+                        <div className="ml-4">
+                            <Tooltip title="Iniciar sesión">
+                                <Link href={"/Login"}>
+                                <PersonOutlineIcon className="text-white" />
+                                </Link>
+                            </Tooltip>
                         </div>
                     </div>
                 </div>
